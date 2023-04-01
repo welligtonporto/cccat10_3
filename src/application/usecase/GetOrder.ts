@@ -9,7 +9,6 @@ export default class GetOrder {
 	}
 
 	async execute (id: string): Promise<Output> {
-		console.log(id)
 		const order = await this.orderRepository.getById(id);
 		const output: Output = {
 			code: order.getCode(),

@@ -2,6 +2,9 @@ import Order from "../src/domain/entity/Order";
 import crypto from "crypto";
 import Product from "../src/domain/entity/Product";
 import CurrencyTable from "../src/domain/entity/CurrencyTable";
+import GetOrders from "../src/application/usecase/GetOrders";
+import sinon from "sinon";
+import OrderRepositoryDatabase from "../src/OrderRepositoryDatabase";
 
 test("Não deve criar um pedido com cpf inválido", function () {
 	const uuid = crypto.randomUUID();
@@ -58,4 +61,19 @@ test("Deve criar um pedido e gerar o código", function () {
 	const cpf = "407.302.170-27";
 	const order = new Order(uuid, cpf, new CurrencyTable(), 1, new Date("2023-10-01T10:00:00"));
 	expect(order.getCode()).toBe("202300000001");
+});
+
+test("Deve retornar a lista de pedidos", async function () {
+	let orders = [];
+	for (let count = 0; count < 2; count++){
+		const uuid = crypto.randomUUID();
+		const cpf = "407.302.170-27";
+		const order = new Order(uuid, cpf, new CurrencyTable(), count, new Date("2023-10-01T10:00:00"));
+		orders.push(order);
+	}
+	const stub = sinon.stub(OrderRepositoryDatabase.prototype, "getAll").resolves(orders)
+	const getOrders = new GetOrders();
+	const output = await getOrders.execute();
+	expect(output).toHaveLength(2);
+	stub.restore();
 });

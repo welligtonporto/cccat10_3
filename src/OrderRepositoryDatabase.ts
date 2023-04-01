@@ -6,7 +6,7 @@ import Item from "./domain/entity/Item";
 export default class OrderRepositoryDatabase implements OrderRepository {
 
 	async save(order: Order): Promise<void> {
-		const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
+		const connection = pgp()("postgres://postgres:123456@localhost:5432/cccat10");
 		await connection.query("insert into cccat10.order (id_order, cpf, code, total, freight) values ($1, $2, $3, $4, $5)", [order.idOrder, order.cpf, order.code, order.getTotal(), order.freight]);
 		for (const item of order.items) {
 			await connection.query("insert into cccat10.item (id_order, id_product, price, quantity) values ($1, $2, $3, $4)", [order.idOrder, item.idProduct, item.price, item.quantity]);
@@ -16,7 +16,7 @@ export default class OrderRepositoryDatabase implements OrderRepository {
 	}
 
 	async getById(id: string): Promise<Order> {
-		const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
+		const connection = pgp()("postgres://postgres:123456@localhost:5432/cccat10");
 		const [orderData] = await connection.query("select * from cccat10.order where id_order = $1", [id]);
 		const order = new Order(orderData.id_order, orderData.cpf, undefined, 1, new Date());
 		const itemsData = await connection.query("select * from cccat10.item where id_order = $1", [id]);
@@ -27,8 +27,17 @@ export default class OrderRepositoryDatabase implements OrderRepository {
 		return order;
 	}
 
+	async getAll(): Promise<any> {
+		const connection = pgp()("postgres://postgres:123456@localhost:5432/cccat10");
+		const orders = await connection.query("select * from cccat10.order");
+		await connection.$pool.end();
+		console.log(">>>");
+		console.log(orders);
+		return orders;
+	}
+
 	async count(): Promise<number> {
-		const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
+		const connection = pgp()("postgres://postgres:123456@localhost:5432/cccat10");
 		const [options] = await connection.query("select count(*) from cccat10.order", []);
 		await connection.$pool.end();
 		return parseInt(options.count);
